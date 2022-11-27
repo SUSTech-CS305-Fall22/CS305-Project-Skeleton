@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import logging
 
 class PeerProc:
-    def __init__(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit = 1, spiffy=False):
+    def __init__(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit = 1):
         self.id = identity
         self.peer_file_loc = peer_file_loc
         self.node_map_loc = node_map_loc
@@ -23,7 +23,6 @@ class PeerProc:
         self.process = None
         self.send_record = dict() #{to_id:{type:cnt}}
         self.recv_record = dict() #{from_id:{type:cnt}}
-        self.spiffy = False
 
     def start_peer(self):
         cmd = f"python3 -u {self.peer_file_loc} -p {self.node_map_loc} -c {self.haschunk_loc} -m {self.max_transmit} -i {self.id} -t 60"
@@ -56,7 +55,7 @@ class PeerProc:
 
 
 class GradingSession:
-    def __init__(self, grading_handler, latency = 0.05):
+    def __init__(self, grading_handler, latency = 0.05, spiffy=False):
         self.peer_list = dict()
         self.checkerIP = "127.0.0.1"
         self.checkerPort = random.randint(30525, 52305)
@@ -68,6 +67,7 @@ class GradingSession:
         self.delay_pool = ThreadPoolExecutor(max_workers=64)
         self.grading_handler = grading_handler
         self.sending_window = dict()
+        self.spiffy = spiffy
 
     def recv_pkt(self):
         while not self._FINISH:
