@@ -6,16 +6,16 @@ import pytest
 def normal_session():
     blocking_time = 10
     handshaking_session = grader.GradingSession(grader.normal_handler)
-    handshaking_session.add_peer(1, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48001))
-    handshaking_session.add_peer(2, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48002))
-    handshaking_session.add_peer(3, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48003))
-    handshaking_session.add_peer(4, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48004))
-    handshaking_session.add_peer(5, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48005))
-    handshaking_session.add_peer(6, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48006))
-    handshaking_session.add_peer(7, "../src/peer.py", "./tmp/nodes1.map", "./tmp/data1.fragment", 1, ("127.0.0.1", 48007))
+    handshaking_session.add_peer(1, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48001))
+    handshaking_session.add_peer(2, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48002))
+    handshaking_session.add_peer(3, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48003))
+    handshaking_session.add_peer(4, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48004))
+    handshaking_session.add_peer(5, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48005))
+    handshaking_session.add_peer(6, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48006))
+    handshaking_session.add_peer(7, "src/peer.py", "test/tmp1/nodes1.map", "test/tmp1/data1.fragment", 1, ("127.0.0.1", 48007))
     handshaking_session.run_grader()
 
-    handshaking_session.peer_list[("127.0.0.1", 48001)].send_cmd('''DOWNLOAD ./tmp/download_target.chunkhash ./tmp/download_result.fragment\n''')
+    handshaking_session.peer_list[("127.0.0.1", 48001)].send_cmd('''DOWNLOAD test/tmp1/download_target.chunkhash test/tmp1/download_result.fragment\n''')
     time.sleep(blocking_time)
     
     for p in handshaking_session.peer_list.values():
