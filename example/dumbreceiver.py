@@ -1,7 +1,6 @@
 import sys
 import os
-cwd = os.getcwd()
-sys.path.append(cwd)
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import select
 import util.simsocket as simsocket
 import struct

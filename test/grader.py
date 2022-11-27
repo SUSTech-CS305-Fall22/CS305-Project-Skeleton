@@ -12,6 +12,7 @@ import signal
 import queue
 from concurrent.futures import ThreadPoolExecutor
 import logging
+os.chdir(os.path.join(os.path.dirname(__file__), ".."))
 
 class PeerProc:
     def __init__(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit = 1):
