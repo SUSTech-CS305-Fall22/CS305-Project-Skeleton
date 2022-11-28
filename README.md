@@ -12,12 +12,12 @@ python3 util/make_data.py example/ex_file.tar ./example/data2.fragment 4 3,4
 ```
 Then generate chunkhash data for peer1 to be downloaded:
 ```
-sed −n ”3p” master.chunkhash > example/download.chunkhash
+sed -n "3p" master.chunkhash > example/download.chunkhash
 ```
 
 ## Step 2: Run the simulator:
 ```
-perl util/hupsim.pl −m example/ex_topo.map −n util /ex_nodes.map −p 52305 −v 2
+perl util/hupsim.pl -m example/ex_topo.map -n example/ex_nodes_map -p 52305 -v 2
 ```
 
 ## Step 3: Start Peers
