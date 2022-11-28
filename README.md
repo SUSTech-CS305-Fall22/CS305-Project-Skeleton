@@ -20,7 +20,7 @@ sed −n ”3p” master.chunkhash > example/download.chunkhash
 perl util/hupsim.pl −m example/ex_topo.map −n util /ex_nodes.map −p 52305 −v 2
 ```
 
-## Start Peers
+## Step 3: Start Peers
 You need to start each peer in theri own shells.
 ### Start the sender:
 ```
@@ -34,7 +34,7 @@ export SIMULATOR="127.0.0.1: 52305"
 python3 example/dumbreceiver.py -p example/ex_nodes_map -c example/data1.fragment -m 1 -i 1 -v 3
 ```
 
-## Start downloading
+## Step 4:  Start downloading
 Enter this message in the receiver's stdin
 ```
 DOWNLOAD example/download.chunkhash example/test.fragment
