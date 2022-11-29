@@ -1,3 +1,44 @@
+# Set up your repo
+First, clone the repo from github and change the git remote tag::
+```
+git clone https://github.com/SUSTech-CS305-Fall22/CS305-Project-Skeleton.git
+cd CS305-Proejct-Skeleton
+git remote rename origin staff
+```
+After doing so you can use the following command to get the latest update like newly-released checkpoints or so.
+```
+git pull staff
+```
+Then create a private repo your own on github, you will have the link <YOUR_URL> of your new repo.
+
+Return to the local repo, run
+```
+git remote add group <YOUR_URL>
+git push group -u
+```
+After this, you will be synchronize changes of your code to your own repo by
+```
+git push group
+```
+or simply
+```
+git push
+```
+
+In short, run 
+```
+git push
+git pull group
+```
+when synchronizing to your repo,
+
+Run
+```
+git pull staff
+```
+when fetching updates from the staff repo.
+
+
 # How to run the example
 This will be short version of the example described in the document.
 
