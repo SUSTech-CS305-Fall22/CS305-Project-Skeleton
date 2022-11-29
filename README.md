@@ -2,7 +2,7 @@
 First, clone the repo from github and change the git remote tag::
 ```
 git clone https://github.com/SUSTech-CS305-Fall22/CS305-Project-Skeleton.git
-cd CS305-Proejct-Skeleton
+cd CS305-Project-Skeleton
 git remote rename origin staff
 ```
 After doing so you can use the following command to get the latest update like newly-released checkpoints or so.
