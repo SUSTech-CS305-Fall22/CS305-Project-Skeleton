@@ -62,7 +62,7 @@ perl util/hupsim.pl -m example/ex_topo.map -n example/ex_nodes_map -p 52305 -v 2
 ```
 
 ## Step 3: Start Peers
-You need to start each peer in theri own shells.
+You need to start each peer in their own shells.
 ### Start the sender:
 ```
 export SIMULATOR="127.0.0.1: 52305"
