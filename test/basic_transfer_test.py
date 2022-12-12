@@ -63,6 +63,6 @@ def test_rdt(drop_session):
 
     sha1 = hashlib.sha1()
     sha1.update(download_fragment[target_hash])
-    received_hash_str = sha1.hexdigest()
+    received_chunkhash_str = sha1.hexdigest()
 
     assert target_hash.strip() == received_chunkhash_str.strip(), f"received data mismatch, expect hash: {target_hash}, actual: {received_chunkhash_str}" 
