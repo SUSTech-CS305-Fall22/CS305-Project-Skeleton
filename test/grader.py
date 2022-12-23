@@ -15,7 +15,7 @@ import logging
 os.chdir(os.path.join(os.path.dirname(__file__), ".."))
 
 class PeerProc:
-    def __init__(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit = 1):
+    def __init__(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit = 1, timeout = 60):
         self.id = identity
         self.peer_file_loc = peer_file_loc
         self.node_map_loc = node_map_loc
@@ -24,10 +24,13 @@ class PeerProc:
         self.process = None
         self.send_record = dict() #{to_id:{type:cnt}}
         self.recv_record = dict() #{from_id:{type:cnt}}
+        self.timeout = timeout
 
     def start_peer(self):
-        cmd = f"python3 -u {self.peer_file_loc} -p {self.node_map_loc} -c {self.haschunk_loc} -m {self.max_transmit} -i {self.id} -t 60"
-        self.process = subprocess.Popen(cmd.split(" "), stdin=subprocess.PIPE,stdout=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+        cmd = f"python3 -u {self.peer_file_loc} -p {self.node_map_loc} -c {self.haschunk_loc} -m {self.max_transmit} -i {self.id} -t {self.timeout}"
+        self.process = subprocess.Popen(cmd.split(" "), stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,text=True, bufsize=1, universal_newlines=True)
+        # ensure peer is running
+        time.sleep(0.1) 
 
     def send_cmd(self, cmd):
         self.process.stdin.write(cmd)
@@ -51,7 +54,7 @@ class PeerProc:
 
     def terminate_peer(self):
         self.process.send_signal(signal.SIGINT)
-        self.process.terminate()
+        # self.process.terminate()
         self.process = None
 
 
@@ -60,19 +63,18 @@ class GradingSession:
         self.peer_list = dict()
         self.checkerIP = "127.0.0.1"
         self.checkerPort = random.randint(30525, 52305)
-        self.checker_sock = checkersocket.CheckerSocket((self.checkerIP, self.checkerPort))
+        self.checker_sock = None
         self.checker_recv_queue = queue.Queue()
         self.checker_send_queue = queue.Queue()
         self._FINISH = False
         self.latency = latency
-        self.delay_pool = ThreadPoolExecutor(max_workers=64)
         self.grading_handler = grading_handler
         self.sending_window = dict()
         self.spiffy = spiffy
 
     def recv_pkt(self):
         while not self._FINISH:
-            ready = select.select([self.checker_sock],[],[],0.01)
+            ready = select.select([self.checker_sock],[],[],0.1)
             read_ready = ready[0]
             if len(read_ready) > 0:
                 pkt = self.checker_sock.recv_pkt_from()
@@ -82,14 +84,14 @@ class GradingSession:
     def send_pkt(self):
         while not self._FINISH:
             try:
-                pkt = self.checker_send_queue.get(timeout = 0.01)
+                pkt = self.checker_send_queue.get(timeout = 0.1)
             except:
                 continue
             
             if pkt.to_addr in self.peer_list:
                 self.peer_list[pkt.to_addr].record_recv_pkt(pkt.pkt_type, pkt.from_addr)
 
-            time.sleep(self.latency)
+            # time.sleep(self.latency)
             self.checker_sock.sendto(pkt.pkt_bytes, pkt.to_addr)
             # self.delay_pool.submit(lambda arg: GradingSession.delay_send(*arg), [self, pkt])
 
@@ -114,14 +116,23 @@ class GradingSession:
         # run workers
         if not self.spiffy:
             self.start_time = time.time()
+            self.checker_sock = checkersocket.CheckerSocket((self.checkerIP, self.checkerPort))
             recv_worker = Thread(target=GradingSession.recv_pkt,args=[self,] ,daemon = True)
             recv_worker.start()
             send_worker = Thread(target=GradingSession.send_pkt,args=[self,] ,daemon = True)
             send_worker.start()
             grading_worker = Thread(target=self.grading_handler, args=[self.checker_recv_queue, self.checker_send_queue,], daemon=True)
             grading_worker.start()
+        else:
+            self.start_time = time.time()
+            # start simulator
+            cmd = f"perl util/hupsim.pl -m test/tmp3/topo3.map -n test/tmp3/nodes3.map -p {self.checkerPort} -v 3"
+            outfile = open("log/Checker.log", "w")
+            simulator_process = subprocess.Popen(cmd.split(" "), stdin=subprocess.PIPE,stdout=outfile,stderr=outfile ,text=True, bufsize=1, universal_newlines=True)
+            # ensure simulator starts
+            time.sleep(5)
 
-                #run peers
+        #run peers
         for p in self.peer_list.values():
             p.start_peer()
 
@@ -149,9 +160,11 @@ def drop_handler(recv_queue, send_queue):
     winsize_logger.addHandler(fh)
     winsize_logger.info("Winsize")
 
+    cnt = 0
+
     while True:
         try:
-            pkt = recv_queue.get(timeout=0.1)
+            pkt = recv_queue.get(timeout=0.01)
         except:
             continue
 
@@ -159,6 +172,7 @@ def drop_handler(recv_queue, send_queue):
             if pkt.seq not in sending_window:
                 sending_window.append(pkt.seq)
             last_pkt = 3
+            cnt+=1
         elif pkt.pkt_type == 4:
             if pkt.ack in sending_window:
                 sending_window.remove(pkt.ack)
@@ -170,7 +184,8 @@ def drop_handler(recv_queue, send_queue):
         else:
             sending_window.clear()
 
-        if pkt.pkt_type==3 and int(time.time()-start_time)>15 and int(time.time()-start_time)<18 and not dropped:
+        if pkt.pkt_type==3 and cnt==150 and not dropped:
+            winsize_logger.info("Packet Dropped!")
             dropped = True
             continue
 
