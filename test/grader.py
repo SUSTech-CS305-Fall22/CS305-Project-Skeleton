@@ -27,10 +27,14 @@ class PeerProc:
         self.timeout = timeout
 
     def start_peer(self):
-        cmd = f"python3 -u {self.peer_file_loc} -p {self.node_map_loc} -c {self.haschunk_loc} -m {self.max_transmit} -i {self.id} -t {self.timeout}"
+        if self.timeout:
+            cmd = f"python3 -u {self.peer_file_loc} -p {self.node_map_loc} -c {self.haschunk_loc} -m {self.max_transmit} -i {self.id} -t {self.timeout}"
+        else:
+            cmd = f"python3 -u {self.peer_file_loc} -p {self.node_map_loc} -c {self.haschunk_loc} -m {self.max_transmit} -i {self.id}"
+
         self.process = subprocess.Popen(cmd.split(" "), stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,text=True, bufsize=1, universal_newlines=True)
         # ensure peer is running
-        time.sleep(0.1) 
+        time.sleep(1) 
 
     def send_cmd(self, cmd):
         self.process.stdin.write(cmd)
@@ -59,7 +63,7 @@ class PeerProc:
 
 
 class GradingSession:
-    def __init__(self, grading_handler, latency = 0.05, spiffy=False):
+    def __init__(self, grading_handler, latency = 0.05, spiffy=False, topo_map = "test/tmp3/topo3.map", nodes_map = "test/tmp3/nodes3.map"):
         self.peer_list = dict()
         self.checkerIP = "127.0.0.1"
         self.checkerPort = random.randint(30525, 52305)
@@ -71,6 +75,9 @@ class GradingSession:
         self.grading_handler = grading_handler
         self.sending_window = dict()
         self.spiffy = spiffy
+
+        self.topo = topo_map
+        self.nodes = nodes_map
 
     def recv_pkt(self):
         while not self._FINISH:
@@ -102,8 +109,8 @@ class GradingSession:
     def stop_grader(self):
         self._FINISH = True
 
-    def add_peer(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit, peer_addr):
-        peer = PeerProc(identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit)
+    def add_peer(self, identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit, peer_addr, timeout = 60):
+        peer = PeerProc(identity, peer_file_loc, node_map_loc, haschunk_loc, max_transmit, timeout=timeout)
         self.peer_list[peer_addr] = peer
 
     def run_grader(self):
@@ -126,7 +133,7 @@ class GradingSession:
         else:
             self.start_time = time.time()
             # start simulator
-            cmd = f"perl util/hupsim.pl -m test/tmp3/topo3.map -n test/tmp3/nodes3.map -p {self.checkerPort} -v 3"
+            cmd = f"perl util/hupsim.pl -m {self.topo} -n {self.nodes} -p {self.checkerPort} -v 3"
             outfile = open("log/Checker.log", "w")
             simulator_process = subprocess.Popen(cmd.split(" "), stdin=subprocess.PIPE,stdout=outfile,stderr=outfile ,text=True, bufsize=1, universal_newlines=True)
             # ensure simulator starts
